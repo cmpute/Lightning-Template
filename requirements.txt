@@ -1,0 +1,7 @@
+lightning
+matplotlib
+addict
+fire
+pyyaml
+toml
+tensorboardX

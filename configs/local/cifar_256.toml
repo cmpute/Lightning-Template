@@ -1,0 +1,7 @@
+__base__ = "../base.yml"
+
+[model]
+latent_dim = 256
+
+[train]
+fast_mul = true

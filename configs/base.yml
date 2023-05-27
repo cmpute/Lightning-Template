@@ -1,0 +1,31 @@
+# ---------- Common settings ----------
+nodes: 1 # Number of nodes to be used for training
+devices: 'auto' # Specify 'cpu'/'gpu', or number of devices, or sequence of device indices.
+              # You can also use auto to automatically use all devices
+seed: null # The random seed across all libraries
+experiment: "example" # Name of the experiment. It determines the name of the root result folder
+version: "" # Name of the version. It determines the name of the sub folders.
+            # The version name will be appended with the date and time as well.
+output_path: "output" # The root folder of all outputs
+
+# ---------- Dataset settings ----------
+dataset:
+  path: "data/cifar10"
+
+# ---------- Model specific settings ----------
+model:
+  input_channels: 3
+  base_channels: 32
+  latent_dim: 64
+
+# ---------- Training related settings ----------
+train:
+  batch_size: 256
+  num_workers: 4
+  epochs: 100 # total epochs
+  subset_ratio: 1.0 # Use only this fraction of the dataset as 1 epoch
+                    # Note that if you want to use full dataset, this value can be null or 1.0, but not 1!
+
+  precision: 32 # Available options: 16, bf16, 16-mixed, bf16-mixed, 32, 64
+  fast_mul: false # Whether enable fast 32-bit multiplications
+  visualize_interval: 10 # Generate visualization every this number of epochs
