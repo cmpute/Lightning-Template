@@ -1,6 +1,6 @@
 import toml
 from pathlib import Path
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import torch
 import torch.utils.data as data
@@ -9,7 +9,7 @@ from lightning.pytorch.trainer import Trainer
 from lightning.pytorch.loggers import TensorBoardLogger
 from lightning.pytorch.callbacks import LearningRateMonitor, ModelCheckpoint
 
-from fancy_model.utils.common import initialize_logger, load_config_file
+from fancy_model.utils.common import initialize_loggers, load_config_file
 from fancy_model.wrapper import AutoEncoder
 from fancy_model.datasets import CIFAR10Dataset
 from callbacks import GenerateCallback
@@ -21,13 +21,17 @@ def main(cfg_path: str, resume: str = None):
     """
 
     # ---------- Load configs and define global settings ----------
-    logger = initialize_logger()
     configs = load_config_file(cfg_path)
-    logger.info("Loaded config file: {}".format(cfg_path))
 
     output_root = Path(configs.output_path) / configs.experiment
     version_name = (configs.version + '_') if configs.version else ''
     version_name += datetime.now().strftime('%y%m%d_%H%M')
+
+    # Set up logging
+    log_path = output_root / "logs" / (version_name + ".log")
+    log_path.parent.mkdir(exist_ok=True, parents=True)
+    logger = initialize_loggers(log_path, console_level=configs.log_level)
+    logger.info("Loaded config file: {}".format(cfg_path))
 
     # Backup config file
     ckpt_path = output_root / "ckpts" / version_name
@@ -45,7 +49,7 @@ def main(cfg_path: str, resume: str = None):
 
 
     # ---------- Define models, datasets and dataloaders ----------
-    model = AutoEncoder(configs.model)
+    model = AutoEncoder(configs)
     train_set = CIFAR10Dataset(configs.dataset.path, split="train")
     train_set, val_set = torch.utils.data.random_split(train_set, [45000, 5000])
 
@@ -65,7 +69,7 @@ def main(cfg_path: str, resume: str = None):
     ))]
     callbacks = [
         ModelCheckpoint(
-            dirpath=output_root / "ckpts",
+            dirpath=ckpt_path,
             filename="{epoch}_{val_loss:.2f}",
             monitor="val_loss",
             save_last=True,
@@ -74,6 +78,12 @@ def main(cfg_path: str, resume: str = None):
             train_set,
             every_n_epochs=configs.train.visualize_interval),
         LearningRateMonitor("epoch")]
+    if configs.train.save_every_n_minutes > 0:
+        callbacks.append(ModelCheckpoint(
+            dirpath=ckpt_path,
+            filename="timed_save_{step}",
+            train_time_interval=timedelta(minutes=configs.train.save_every_n_minutes),
+        ))
     trainer = Trainer(
         max_epochs=configs.train.epochs,
 

@@ -18,6 +18,7 @@ pip install -e .
 # Usage
 
 - Train: `python tools/main.py train --cfg_path configs/local/cifar_256.toml`
+- Visualize: Install `tensorboard` and `tensorboard --logdir output/example/tensorboard`
 
 # Tested Environment
 

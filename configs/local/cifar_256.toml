@@ -1,4 +1,4 @@
-__base__ = "../base.yml"
+__base__ = ["../base_model.yml", "../base_train.yml"]
 
 [model]
 latent_dim = 256

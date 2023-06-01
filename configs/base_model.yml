@@ -1,0 +1,9 @@
+# ---------- Dataset settings ----------
+dataset:
+  path: "data/cifar10"
+
+# ---------- Model specific settings ----------
+model:
+  input_channels: 3
+  base_channels: 32
+  latent_dim: 64

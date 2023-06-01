@@ -4,14 +4,31 @@ import lightning as L
 
 from fancy_model.models import Encoder, Decoder
 from fancy_model.ops.loss import ReconstructionLoss
+from fancy_model.utils.common import short_hash, get_logger
+
+LOGGER = get_logger()
+
+OptimizerTypes = {
+    "sgd": optim.SGD,
+    "adam": optim.Adam,
+    "adamw": optim.AdamW
+}
+LRSchedulerTypes = {
+    "step": optim.lr_scheduler.StepLR,
+    "reduce_on_plateau": optim.lr_scheduler.ReduceLROnPlateau,
+    "one_cycle": optim.lr_scheduler.OneCycleLR
+}
 
 class AutoEncoder(L.LightningModule):
-    def __init__(self, model_configs):
+    def __init__(self, configs):
         super().__init__()
-        self.configs = model_configs
+        self.configs = configs
 
-        # TODO: add model config hash to the hparams
-        #       see https://github.com/cmpute/detection3/blob/master/utils/config.py#L212
+        # log down the hash of the model configs for sanity check
+        model_configs = self.configs.model
+        self.model_hash = short_hash(model_configs)
+        self.hparams["hash"] = self.model_hash
+        LOGGER.info("The hash of the model configs is: %s", self.model_hash)
 
         self.encoder = Encoder(
             model_configs.input_channels,
@@ -28,10 +45,20 @@ class AutoEncoder(L.LightningModule):
     def forward(self, batch):
         z = self.encoder(batch)
         return self.decoder(z)
+    
+    def on_load_checkpoint(self, checkpoint: dict):
+        ckpt_hash = checkpoint["hparams"]["hash"]
+        if self.model_hash != ckpt_hash:
+            LOGGER.warn("Inconsistent model configs! (%s from config vs %s in file)", self.model_hash, ckpt_hash)
 
     def configure_optimizers(self):
-        optimizer = optim.Adam(self.parameters(), lr=1e-3)
-        scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode="min", factor=0.2, patience=20, min_lr=5e-5)
+        optim_params = self.configs.train.optimizer
+        optim_type = OptimizerTypes[optim_params.pop('type').lower()]
+        optimizer = optim_type(self.parameters(), lr=self.configs.train.lr, **optim_params)
+
+        scheduler_params = self.configs.train.lr_scheduler
+        scheduler_type = LRSchedulerTypes[scheduler_params.pop('type').lower()]
+        scheduler = scheduler_type(optimizer, **scheduler_params)
         return {"optimizer": optimizer, "lr_scheduler": scheduler, "monitor": "val_loss"}
 
     def training_step(self, batch, batch_idx):
