@@ -1,10 +1,10 @@
+import lightning as L
 import torch
 import torch.optim as optim
-import lightning as L
 
-from fancy_model.models import Encoder, Decoder
+from fancy_model.models import Decoder, Encoder
 from fancy_model.ops.loss import ReconstructionLoss
-from fancy_model.utils.common import short_hash, get_logger
+from fancy_model.utils.common import get_logger, short_hash
 
 LOGGER = get_logger()
 
@@ -30,6 +30,7 @@ class AutoEncoder(L.LightningModule):
         self.hparams["hash"] = self.model_hash
         LOGGER.info("The hash of the model configs is: %s", self.model_hash)
 
+        # build the model structure
         self.encoder = Encoder(
             model_configs.input_channels,
             model_configs.base_channels,
@@ -41,10 +42,6 @@ class AutoEncoder(L.LightningModule):
             model_configs.latent_dim
         )
         self.loss_fn = ReconstructionLoss()
-
-    def forward(self, batch):
-        z = self.encoder(batch)
-        return self.decoder(z)
     
     def on_load_checkpoint(self, checkpoint: dict):
         ckpt_hash = checkpoint["hparams"]["hash"]
@@ -60,6 +57,10 @@ class AutoEncoder(L.LightningModule):
         scheduler_type = LRSchedulerTypes[scheduler_params.pop('type').lower()]
         scheduler = scheduler_type(optimizer, **scheduler_params)
         return {"optimizer": optimizer, "lr_scheduler": scheduler, "monitor": "val_loss"}
+
+    def forward(self, batch):
+        z = self.encoder(batch)
+        return self.decoder(z)
 
     def training_step(self, batch, batch_idx):
         x, x_hat = batch, self.forward(batch)

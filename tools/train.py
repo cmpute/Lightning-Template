@@ -40,7 +40,7 @@ def main(cfg_path: str, resume: str = None):
 
     # set the random seed if required
     if configs.seed:
-        L.seed_everything(configs.seed)
+        L.seed_everything(configs.seed, workers=True)
 
     # enable extra optimizations when required
     torch_version = tuple(map(int, (torch.__version__.split("."))))
@@ -57,7 +57,9 @@ def main(cfg_path: str, resume: str = None):
         batch_size=configs.train.batch_size,
         num_workers=configs.train.num_workers
     )
-    train_loader = data.DataLoader(train_set, shuffle=True, pin_memory=True, **dataloader_params)
+
+    # suffle, distributed samplers, seeding for each worker will be automatically handled by Lightning
+    train_loader = data.DataLoader(train_set, pin_memory=True, **dataloader_params)
     val_loader = data.DataLoader(val_set, **dataloader_params)
 
 
@@ -87,15 +89,12 @@ def main(cfg_path: str, resume: str = None):
     trainer = Trainer(
         max_epochs=configs.train.epochs,
 
-        callbacks=callbacks,
-        logger=loggers,
-        enable_model_summary=False,
-
         devices=configs.devices,
         num_nodes=configs.nodes,
-        precision=configs.train.precision,
 
-        limit_train_batches=configs.train.subset_ratio,
-        limit_val_batches=configs.train.subset_ratio,
+        callbacks=callbacks,
+        logger=loggers,
+
+        **configs.train.others
     )
     trainer.fit(model, train_loader, val_loader, ckpt_path=resume)

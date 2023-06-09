@@ -2,6 +2,7 @@
 dataset:
   path: "data/cifar10"
 
+
 # ---------- Model specific settings ----------
 model:
   input_channels: 3

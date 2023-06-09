@@ -6,7 +6,7 @@ conda create -n ltn python=3.9
 
 # Instal Pytorch and CUDA development environment
 conda activate ltn 
-conda install pytorch torchvision pytorch-cuda=11.8 cuda-nvcc=11.8 -c pytorch -c nvidia
+conda install pytorch torchvision pytorch-cuda=11.8 cuda-nvcc=11.8 cuda-libraries-dev=11.8 -c pytorch -c nvidia
 
 # Install normal Python dependencies
 pip install -r requirements.txt

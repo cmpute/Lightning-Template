@@ -1,6 +1,11 @@
-import os, logging, base64, json, hashlib
+import base64
+import hashlib
+import json
+import logging
+import os
 from pathlib import Path
 from addict import Dict
+
 
 def initialize_loggers(log_file=None, console_level=logging.INFO, file_level=logging.INFO):
     log_file = Path(log_file)
@@ -18,18 +23,20 @@ def initialize_loggers(log_file=None, console_level=logging.INFO, file_level=log
         log_file = log_file.with_stem(log_file.stem + ".s%s" % os.environ['SLURM_TASK_PID'])
 
     # setup loggers
-    pl_logger = logging.getLogger("pytorch_lightning")
-    pl_logger.setLevel(logging.INFO if rank_zero else logging.ERROR)
+    fab_logger = logging.getLogger("lightning.fabric")
+    pl_logger = logging.getLogger("lightning.pytorch")
+    logger = logging.getLogger("mtr")
 
-    logger = logging.getLogger("fancy_model")
-    logger.setLevel(logging.DEBUG if rank_zero else logging.ERROR)
+    for log in [fab_logger, pl_logger, logger]:
+        log.setLevel(logging.INFO if rank_zero else logging.ERROR)
 
     # setup handlers
     formatter = logging.Formatter('[%(asctime)s][%(levelname)5s|%(name)s] %(message)s', "%m-%d %H:%M:%S")
     console_handler = logging.StreamHandler()
     console_handler.setLevel(console_level if rank_zero else logging.ERROR)
     console_handler.setFormatter(formatter)
-    pl_logger.addHandler(console_handler)
+    pl_logger.handlers = [console_handler]
+    fab_logger.handlers = [console_handler]
     logger.addHandler(console_handler)
 
     if log_file is not None:
@@ -37,6 +44,7 @@ def initialize_loggers(log_file=None, console_level=logging.INFO, file_level=log
         file_handler.setLevel(file_level if rank_zero else logging.ERROR)
         file_handler.setFormatter(formatter)
         pl_logger.addHandler(file_handler)
+        fab_logger.addHandler(file_handler)
         logger.addHandler(file_handler)
 
     logger.propagate = False
