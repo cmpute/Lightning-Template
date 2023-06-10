@@ -1,7 +1,7 @@
 # ---------- Dataset settings ----------
 dataset:
   path: "data/cifar10"
-
+  drop_last: true # Drop the last batch if not full. Only effective during training.
 
 # ---------- Model specific settings ----------
 model:

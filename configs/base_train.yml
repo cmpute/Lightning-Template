@@ -43,20 +43,22 @@ train:
   visualize_interval: 10 # Generate visualization every this number of epochs
 
 
-  ##### Params that will be directly passed to the Lightning Trainer #####
-  # see https://lightning.ai/docs/pytorch/latest/common/trainer.html#trainer-flags for all available options
-  other:
-    precision: 32 # Available options: 16, bf16, 16-mixed, bf16-mixed, 32, 64
-    sync_batchnorm: true # Whether to use the SyncBatchNorm
-
-    limit_train_batches: 1.0 # Use only this fraction of the dataset as 1 epoch
-                             # Note that if you want to use full dataset, this value can be null or 1.0, but not 1!
-
-    enable_model_summary: false
-
 # ---------- Testing related settings ----------
 test:
 
   # common configs
   batch_size: 512 # per gpu
   num_workers: 8 # per node
+
+
+# ---------- Params that will be directly passed to the Lightning Trainer ----------
+# see https://lightning.ai/docs/pytorch/latest/common/trainer.html#trainer-flags for all available options
+trainer:
+
+  precision: 32 # Available options: 16, bf16, 16-mixed, bf16-mixed, 32, 64
+  sync_batchnorm: true # Whether to use the SyncBatchNorm
+
+  limit_train_batches: 1.0 # Use only this fraction of the dataset as 1 epoch
+                           # Note that if you want to use full dataset, this value can be null or 1.0, but not 1!
+
+  enable_model_summary: false

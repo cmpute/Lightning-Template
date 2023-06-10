@@ -1,6 +1,5 @@
-import toml
 from pathlib import Path
-from datetime import datetime, timedelta
+from datetime import datetime
 
 import torch
 import torch.utils.data as data
@@ -58,7 +57,7 @@ def main(cfg_path: str, ckpt_path: str, val: bool = False):
     dataloader = data.DataLoader(dataset, pin_memory=True, **dataloader_params)
 
 
-    # ---------- Setup the trainer and start evaluation ----------
+    # ---------- Setup the trainer and start testing ----------
     trainer = Trainer(
         devices=configs.devices,
         num_nodes=configs.nodes,
@@ -66,7 +65,7 @@ def main(cfg_path: str, ckpt_path: str, val: bool = False):
         logger=[], # disable the default Tensorboard logger
         deterministic=bool(configs.seed),
 
-        **configs.train.other
+        **configs.trainer
     )
     trainer.test(model, dataloader, ckpt_path)
 

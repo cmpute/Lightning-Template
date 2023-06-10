@@ -59,7 +59,10 @@ def main(cfg_path: str, resume: str = None):
     )
 
     # suffle, distributed samplers, seeding for each worker will be automatically handled by Lightning
-    train_loader = data.DataLoader(train_set, pin_memory=True, **dataloader_params)
+    train_loader = data.DataLoader(train_set,
+                                   pin_memory=True,
+                                   drop_last=configs.dataset.drop_last,
+                                   **dataloader_params)
     val_loader = data.DataLoader(val_set, **dataloader_params)
 
 
@@ -96,7 +99,7 @@ def main(cfg_path: str, resume: str = None):
         logger=loggers,
         deterministic=bool(configs.seed),
 
-        **configs.train.other
+        **configs.trainer
     )
     trainer.fit(model, train_loader, val_loader, ckpt_path=resume)
 
