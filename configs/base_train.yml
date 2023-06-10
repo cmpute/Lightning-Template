@@ -53,3 +53,10 @@ train:
                              # Note that if you want to use full dataset, this value can be null or 1.0, but not 1!
 
     enable_model_summary: false
+
+# ---------- Testing related settings ----------
+test:
+
+  # common configs
+  batch_size: 512 # per gpu
+  num_workers: 8 # per node

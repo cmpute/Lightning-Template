@@ -94,7 +94,12 @@ def main(cfg_path: str, resume: str = None):
 
         callbacks=callbacks,
         logger=loggers,
+        deterministic=bool(configs.seed),
 
-        **configs.train.others
+        **configs.train.other
     )
     trainer.fit(model, train_loader, val_loader, ckpt_path=resume)
+
+if __name__ == "__main__":
+    import fire
+    fire.Fire(main)

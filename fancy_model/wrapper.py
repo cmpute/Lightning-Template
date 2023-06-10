@@ -44,7 +44,7 @@ class AutoEncoder(L.LightningModule):
         self.loss_fn = ReconstructionLoss()
     
     def on_load_checkpoint(self, checkpoint: dict):
-        ckpt_hash = checkpoint["hparams"]["hash"]
+        ckpt_hash = checkpoint["hyper_parameters"]["hash"]
         if self.model_hash != ckpt_hash:
             LOGGER.warn("Inconsistent model configs! (%s from config vs %s in file)", self.model_hash, ckpt_hash)
 
@@ -75,5 +75,7 @@ class AutoEncoder(L.LightningModule):
 
     def test_step(self, batch, batch_idx):
         x, x_hat = batch, self.forward(batch)
+
+        # TODO: implement metric calculation in the testing step
         loss = self.loss_fn(x, x_hat)
         self.log("test_loss", loss)

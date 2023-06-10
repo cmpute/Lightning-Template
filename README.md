@@ -17,8 +17,22 @@ pip install -e .
 
 # Usage
 
-- Train: `python tools/main.py train --cfg_path configs/local/cifar_256.toml`
+> Note that the keywords, such as `--cfg_path`, are usually omissible in the command.
+
+## Training
+
+- From scratch: `python tools/main.py train --cfg_path configs/local/cifar_256.toml`
+- From checkpoint: `python tools/main.py train --cfg_path configs/local/cifar_256.toml --resume output/example_50epochs.ckpt`
 - Visualize: Install `tensorboard` and `tensorboard --logdir output/example/tensorboard`
+
+## Testing
+
+- Test on validation set: `python tools/main.py test --cfg_path configs/local/cifar_256.toml --ckpt_path output/example_50epochs.ckpt --val` 
+- Test on testing set: `python tools/main.py test --cfg_path configs/local/cifar_256.toml --ckpt_path output/example_50epochs.ckpt`
+
+## Inference
+
+To be supported.
 
 # Tested Environment
 
